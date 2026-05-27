@@ -4,13 +4,14 @@ from model     import LinearRegression
 from loss_fn   import get_loss_fn
 from optimizer import get_optimizer
 from train     import train
-from plot      import plot_losses, plot_lr_search_summary
+from plot      import plot_losses, plot_lr_search_summary, plot_predictions
+from evaluate  import evaluate_on_test
 import os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # --- data ---
-dataset = DiabetesDataset(os.path.join(ROOT, "data", "diabetes.csv"), True)
+dataset = DiabetesDataset(os.path.join(ROOT, "data", "diabetes.csv"), False)
 train_dataset, validation_dataset, test_dataset = split_dataset(dataset)
 train_loader = create_data_loader(train_dataset, 32, True)
 validation_loader = create_data_loader(validation_dataset, len(validation_dataset))
@@ -64,4 +65,14 @@ plot_lr_search_summary(
     train_errors   = [train_losses_across_lrs[lr][-1] for lr in LR_CANDIDATES],
     val_errors     = [validation_losses_across_lrs[lr][-1]   for lr in LR_CANDIDATES],
     save_path      = os.path.join(ROOT, "visualization", "lr_search.png")
+)
+
+
+# --- testing and plotting ---
+y_actual, y_hat = evaluate_on_test(best_model, test_loader)
+
+plot_predictions(
+    y_actual  = y_actual,
+    y_hat     = y_hat,
+    save_path = os.path.join(ROOT, "visualization", "predictions.png")
 )

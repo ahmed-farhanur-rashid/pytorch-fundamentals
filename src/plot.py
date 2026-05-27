@@ -30,15 +30,6 @@ def plot_losses(losses: dict, title: str, save_path: str):
 
 
 def plot_lr_search_summary(learning_rates, train_errors, val_errors, save_path):
-    """
-    How to call:
-    plot_lr_search_summary(
-        learning_rates = LR_CANDIDATES,
-        train_errors   = [train_losses_across_lrs[lr][-1] for lr in LR_CANDIDATES],
-        val_errors     = [val_losses_across_lrs[lr][-1]   for lr in LR_CANDIDATES],
-        save_path      = "../visualization/lr_search.png"
-    )
-    """
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(8, 4))
@@ -53,6 +44,29 @@ def plot_lr_search_summary(learning_rates, train_errors, val_errors, save_path):
     ax.set_title("LR Search — Final Loss per Learning Rate")
     ax.legend()
     ax.grid(alpha=0.3, which='both')
+
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+
+def plot_predictions(y_actual, y_hat, save_path):
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+    fig, ax = plt.subplots(figsize=(6, 6))
+
+    ax.scatter(y_actual, y_hat, alpha=0.6, color="#2196F3",
+               edgecolors="white", linewidths=0.5, label="Predictions")
+
+    min_val = min(y_actual.min(), y_hat.min())
+    max_val = max(y_actual.max(), y_hat.max())
+    ax.plot([min_val, max_val], [min_val, max_val],
+            color="#FF5722", linestyle="--", linewidth=1.5, label="Perfect fit")
+
+    ax.set_xlabel("Actual")
+    ax.set_ylabel("Predicted")
+    ax.set_title("Actual vs Predicted")
+    ax.legend()
 
     plt.tight_layout()
     plt.savefig(save_path)

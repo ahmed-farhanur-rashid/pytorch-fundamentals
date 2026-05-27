@@ -2,6 +2,8 @@
 
 A from-scratch implementation of linear regression on the Diabetes dataset. Covers the full ML workflow: data loading, normalization, train/val/test splitting, learning rate search, training, and loss visualization.
 
+The model does not perform very well, which is to be expected at dataset of this scale and that only simple linear regression was applied. The point of this project is not to create a good model, but to create a pipeline that would act as a reference point to jog my memory.
+
 ---
 
 ## Project Structure
