@@ -1,15 +1,17 @@
 import torch
-from data      import DiabetesDataset, make_splits, create_data_loader
+from data      import DiabetesDataset, split_dataset, create_data_loader
 from model     import LinearRegression
 from loss_fn   import get_loss_fn
 from optimizer import get_optimizer
 from train     import train
 from plot      import plot_losses, plot_lr_search_summary
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # --- data ---
-dataset = DiabetesDataset("./data/diabetes.csv", True)
-train_dataset, validation_dataset, test_dataset = make_splits(dataset)
+dataset = DiabetesDataset(os.path.join(ROOT, "data", "diabetes.csv"), True)
+train_dataset, validation_dataset, test_dataset = split_dataset(dataset)
 train_loader = create_data_loader(train_dataset, 32, True)
 validation_loader = create_data_loader(validation_dataset, len(validation_dataset))
 test_loader = create_data_loader(test_dataset, len(test_dataset))
@@ -54,12 +56,12 @@ plot_losses(
         "validation" : best_validation_loss
     },
     title     = "Best Model Loss",
-    save_path = "../visualization/loss.png"
+    save_path = os.path.join(ROOT, "visualization", "loss.png")
 )
 
 plot_lr_search_summary(
     learning_rates = LR_CANDIDATES,
     train_errors   = [train_losses_across_lrs[lr][-1] for lr in LR_CANDIDATES],
     val_errors     = [validation_losses_across_lrs[lr][-1]   for lr in LR_CANDIDATES],
-    save_path      = "../visualization/lr_search.png"
+    save_path      = os.path.join(ROOT, "visualization", "lr_search.png")
 )

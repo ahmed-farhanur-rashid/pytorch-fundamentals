@@ -13,7 +13,7 @@ import torch.nn as nn
 
     Alt way to write it:
 
-        def get_criterion(reduction: str = "mean") -> nn.Module:
+        def get_loss_fn(reduction: str = "mean") -> nn.Module:
             return nn.MSELoss(reduction=reduction)
     
     If no argument is passed inside, the sensible default is mean.
@@ -21,5 +21,5 @@ import torch.nn as nn
 """
 
 
-def get_loss_function():
+def get_loss_fn():
     return nn.MSELoss()

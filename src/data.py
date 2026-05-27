@@ -43,7 +43,7 @@ class DiabetesDataset(Dataset):
     def __len__(self):
         return len(self.X)
 
-    def __getItem__(self, idx):
+    def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
 
     def denormalize(self, normalized_y):
@@ -54,18 +54,27 @@ class DiabetesDataset(Dataset):
 # Dataset Splitter
 # ──────────────────────────────────────────────────────────
 
-def split_dataset(dataset, train_split=0.8, test_split=0.1, validation_split=0.1, seed=42):
+def split_dataset(dataset, train_split=0.8, test_split=0.1, seed=42, validation: bool=True):
 
     n            = len(dataset)
-    train_n      = int(n * train_split)
-    validation_n = int(n * validation_split)
-    test_n       = int(n * test_split)
+    train_n      = int(n * train_split)  # 80% training data
+    test_n       = int(n * test_split)   # 10% testing data
+    validation_n = None                  # remainder is validation data
 
     generator = torch.Generator().manual_seed(seed)
-    train_ds, validation_ds, test_ds = random_split(
-        dataset, [train_n, validation_n, test_n], generator
-    )
-    return train_ds, validation_ds, test_ds
+    
+    if validation:
+        validation_n = n - train_n - test_n
+
+        train_ds, validation_ds, test_ds = random_split(
+            dataset, [train_n, validation_n, test_n], generator
+        )
+        return train_ds, validation_ds, test_ds
+    else:
+        train_ds, test_ds = random_split(
+            dataset, [train_n, test_n], generator
+        )
+        return train_ds, test_ds
 
 
 # ──────────────────────────────────────────────────────────
