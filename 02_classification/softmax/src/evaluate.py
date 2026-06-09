@@ -1,34 +1,28 @@
 import torch
 
 
-def evaluate(model, data_loader, loss_fn):
-    model.eval()
-    evaluation_loss = 0.0
-
-    with torch.no_grad():
-        for x, y in data_loader:
-            y_hat = model(x)                # forward pass
-            loss = loss_fn(y_hat, y)        # calculate loss
-            evaluation_loss += loss.item()  # append loss
-
-    model.train()
-    return evaluation_loss / len(data_loader)
-
-
 def evaluate_on_test(model, test_loader):
+    """
+    Evaluates the model on the test set.
+
+    Returns:
+        all_labels → true labels as numpy array
+        all_preds  → predicted class indices as numpy array
+        all_images → list of image tensors
+    """
     model.eval()
-    all_y     = []
-    all_y_hat = []
+
+    all_labels = []
+    all_preds  = []
+    all_images = []
 
     with torch.no_grad():
         for x, y in test_loader:
-            y_hat = model(x)
-            all_y.append(y)
-            all_y_hat.append(y_hat)
+            y_hat     = model(x.view(x.size(0), -1))
+            predicted = torch.argmax(y_hat, dim=1)
 
-    # concatenates them into a single tensor and converts it to numpy
-    # this is important as tensor creates 2D torch array arranged by batches. 
-    all_y     = torch.cat(all_y).numpy()
-    all_y_hat = torch.cat(all_y_hat).numpy()
+            all_labels.extend(y.cpu().numpy())
+            all_preds.extend(predicted.cpu().numpy())
+            all_images.extend(x.cpu())
 
-    return all_y, all_y_hat
+    return all_labels, all_preds, all_images

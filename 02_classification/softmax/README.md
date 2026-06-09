@@ -1,77 +1,62 @@
-# Linear Regression with PyTorch
+# Softmax — Multi-Class Classification
 
-A from-scratch implementation of linear regression on the Diabetes dataset. Covers the full ML workflow: data loading, normalization, train/val/test splitting, learning rate search, training, and loss visualization.
+Multi-class classification using softmax for MNIST digit recognition.
 
-The model does not perform very well, which is to be expected at dataset of this scale and that only simple linear regression was applied. The point of this project is not to create a good model, but to create a pipeline that would act as a reference point to jog my memory.
+## What is Softmax?
 
----
+Softmax converts raw scores (logits) into probabilities that sum to 1:
+
+```
+softmax(z_i) = exp(z_i) / Σ exp(z_j)
+```
+
+Each output is in [0, 1], and all outputs sum to 1. The class with the highest probability is the prediction.
+
+## Dataset
+
+[MNIST](http://yann.lecun.com/exdb/mnist/) — 28×28 grayscale images of handwritten digits (0-9).
+
+- 60,000 training images
+- 10,000 test images
+- 10 classes (digits 0-9)
 
 ## Project Structure
 
 ```
-linear-regression-using-pytorch/
+softmax/
 ├── data/
-│   └── diabetes.csv
 ├── src/
 │   ├── __init__.py
-│   ├── data.py         # Dataset class, train/val/test splitting, DataLoader
-│   ├── evaluate.py     # Evaluation (no_grad, returns average loss)
-│   ├── loss_fn.py      # MSE loss
-│   ├── main.py         # Main entry point
-│   ├── model.py        # LinearRegression (nn.Module wrapper around nn.Linear)
-│   ├── optimizer.py    # SGD optimizer
-│   ├── train.py        # Training loop with optional validation
-│   ├── plot.py         # Loss curve and LR search plots
-│   └── train.py        # Training loop with optional validation
-├── visualization/      # Saved plots land here
-├── README.md
-└── LICENSE
+│   ├── data.py          # Loads MNIST, splits train/val
+│   ├── model.py         # SoftMax model (784 → 10)
+│   ├── loss_fn.py       # CrossEntropyLoss
+│   ├── optimizer.py     # SGD
+│   ├── train.py         # Training loop
+│   ├── evaluate.py      # Test evaluation
+│   ├── plot.py          # Loss/accuracy, weights, confusion matrix
+│   └── main.py          # Entry point
+├── visualization/
+└── README.md
 ```
 
----
+## Run
 
-## Dataset
-
-The [Diabetes dataset](https://scikit-learn.org/stable/datasets/toy_dataset.html#diabetes-dataset) has 442 patients, 10 features (age, sex, BMI, blood pressure, 6 blood serum values), and one continuous target representing disease progression one year after baseline. The target is min-max normalized to [0, 1] before training.
-
----
-
-## Setup
-
-```bash
-git clone https://github.com/yourusername/linear-regression-using-pytorch.git
-cd linear-regression-using-pytorch
-
-python -m venv .venv
-source .venv/bin/activate
-
-pip install torch pandas numpy matplotlib
 ```
-
----
-
-## Usage
-
-```bash
 python src/main.py
 ```
 
-The script:
-1. Loads and normalizes the dataset (80/10/10 split)
-2. Trains a linear model for each learning rate in `[1e-3, 5e-3, 1e-2, 5e-2, 1e-1]` for 100 epochs
-3. Picks the best learning rate based on final validation loss
-4. Saves two plots to `visualization/`
+## Output
 
----
+- `visualization/loss_acc.png` — training curves (loss + accuracy)
+- `visualization/weights.png` — learned weights per digit class
+- `visualization/confusion_matrix.png` — test accuracy
+- `visualization/sample_predictions.png` — visual check on predictions
 
-## Outputs
+## Key Differences from Sigmoid
 
-`visualization/loss.png` — training and validation loss over 100 epochs for the best learning rate.
-
-`visualization/lr_search.png` — final train/val loss for each candidate learning rate on a log scale.
-
----
-
-## License
-
-MIT — see `LICENSE`.
+| | Sigmoid | Softmax |
+|---|---|---|
+| Classes | 2 (binary) | N (multi-class) |
+| Output | 1 probability | N probabilities (sum to 1) |
+| Loss | `BCELoss` | `CrossEntropyLoss` |
+| Use case | Yes/No questions | Which digit? |

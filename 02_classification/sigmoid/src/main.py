@@ -3,91 +3,79 @@ import os
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
-from data      import (load_mnist,
-                       split_train_validation_set,
-                       create_data_loader)
-from model     import SoftMax
-from loss_fn   import get_loss_fn
+from data import load_heart_disease, create_splits, create_data_loader
+from model import Sigmoid
+from loss_fn import get_loss_fn
 from optimizer import get_optimizer
-from train     import train
-from evaluate  import evaluate_on_test
-from plot      import (plot_loss_and_accuracy,
-                       plot_parameters,
-                       plot_confusion_matrix,
-                       plot_sample_predictions)
+from train import train
+from evaluate import evaluate_on_test
+from plot import (plot_loss_and_accuracy,
+                  plot_confusion_matrix,
+                  plot_feature_importance)
 
 # ──────────────────────────────────────────────────────────
 # Config
 # ──────────────────────────────────────────────────────────
 
-ROOT   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-device = torch.device("cpu")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ──────────────────────────────────────────────────────────
 # Data
 # ──────────────────────────────────────────────────────────
 
-train_dataset, test_dataset = load_mnist(root=os.path.join(ROOT, "data"))
-train_subset, val_subset    = split_train_validation_set(train_dataset)
-train_data_loader           = create_data_loader(train_subset, 64, True)
-val_data_loader             = create_data_loader(val_subset,   64, False)
-test_data_loader            = create_data_loader(test_dataset, 64, False)
+X, y, feature_names = load_heart_disease()
+train_set, val_set, test_set, scaler = create_splits(X, y)
+
+train_loader = create_data_loader(train_set, 32, shuffle=True)
+val_loader = create_data_loader(val_set, 32, shuffle=False)
+test_loader = create_data_loader(test_set, 32, shuffle=False)
 
 # ──────────────────────────────────────────────────────────
 # Model
 # ──────────────────────────────────────────────────────────
 
-model     = SoftMax(input_size=28*28, output_size=10).to(device)
-loss_fn   = get_loss_fn()
-optimizer = get_optimizer(model)
+model = Sigmoid(input_size=13)
+loss_fn = get_loss_fn()
+optimizer = get_optimizer(model, lr=0.1)
 
 # ──────────────────────────────────────────────────────────
 # Training
 # ──────────────────────────────────────────────────────────
 
 model, train_losses, train_accs, val_losses, val_accs = train(
-    model,
-    train_data_loader,
-    loss_fn,
-    optimizer,
-    epoch=25,
-    validation_loader=val_data_loader
+    model, train_loader, loss_fn, optimizer,
+    epochs=100, val_loader=val_loader
 )
 
 # ──────────────────────────────────────────────────────────
 # Evaluate on Test Set
 # ──────────────────────────────────────────────────────────
 
-all_labels, all_preds, all_images = evaluate_on_test(model, test_data_loader)
-test_acc = (np.array(all_labels) == np.array(all_preds)).mean()
+all_labels, all_preds = evaluate_on_test(model, test_loader)
+test_acc = (all_labels == all_preds).mean()
 
 # ──────────────────────────────────────────────────────────
 # Visualize
 # ──────────────────────────────────────────────────────────
 
-plot_loss_and_accuracy(
-    train_losses = train_losses,
-    val_losses   = val_losses,
-    train_accs   = train_accs,
-    val_accs     = val_accs,
-    save_path    = os.path.join(ROOT, "visualization", "loss_acc.png")
-)
+os.makedirs(os.path.join(ROOT, "visualization"), exist_ok=True)
 
-plot_parameters(
-    model     = model,
-    save_path = os.path.join(ROOT, "visualization", "weights.png")
+plot_loss_and_accuracy(
+    train_losses=train_losses,
+    val_losses=val_losses,
+    train_accs=train_accs,
+    val_accs=val_accs,
+    save_path=os.path.join(ROOT, "visualization", "loss_acc.png")
 )
 
 plot_confusion_matrix(
-    cm        = confusion_matrix(all_labels, all_preds),
-    accuracy  = test_acc,
-    save_path = os.path.join(ROOT, "visualization", "confusion_matrix.png")
+    cm=confusion_matrix(all_labels, all_preds),
+    accuracy=test_acc,
+    save_path=os.path.join(ROOT, "visualization", "confusion_matrix.png")
 )
 
-plot_sample_predictions(
-    images    = all_images,
-    labels    = all_labels,
-    preds     = all_preds,
-    save_path = os.path.join(ROOT, "visualization", "sample_predictions.png"),
-    n         = 10
+plot_feature_importance(
+    model=model,
+    feature_names=feature_names,
+    save_path=os.path.join(ROOT, "visualization", "feature_importance.png")
 )
