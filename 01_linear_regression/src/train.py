@@ -1,4 +1,3 @@
-import torch
 from evaluate import evaluate
 
 

@@ -52,6 +52,43 @@ def plot_loss_and_accuracy(train_losses, val_losses, train_accs, val_accs, save_
     plt.close()
 
 # ──────────────────────────────────────────────────────────
+# Train vs Validation Accuracy (side by side)
+# ──────────────────────────────────────────────────────────
+
+def plot_train_val_accuracy(train_accs, val_accs, save_path: str):
+    """
+    Plots train and validation accuracy side by side as separate subplots.
+
+    How to call:
+    plot_train_val_accuracy(
+        train_accs = [0.6, 0.75, 0.85],
+        val_accs   = [0.55, 0.70, 0.80],
+        save_path  = "../visualization/train_val_acc.png"
+    )
+    """
+    _make_dir(save_path)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+
+    # Train Accuracy
+    ax1.plot(train_accs, color="#2196F3", marker='o', markersize=4)
+    ax1.set_title("Training Accuracy")
+    ax1.set_xlabel("Epoch")
+    ax1.set_ylabel("Accuracy")
+    ax1.grid(alpha=0.3)
+
+    # Validation Accuracy
+    ax2.plot(val_accs, color="#FF5722", marker='o', markersize=4)
+    ax2.set_title("Validation Accuracy")
+    ax2.set_xlabel("Epoch")
+    ax2.set_ylabel("Accuracy")
+    ax2.grid(alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+# ──────────────────────────────────────────────────────────
 # Model Weights (what the model learned per class)
 # ──────────────────────────────────────────────────────────
 

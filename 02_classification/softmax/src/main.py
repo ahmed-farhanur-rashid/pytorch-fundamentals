@@ -2,17 +2,18 @@ import torch
 import os
 from sklearn.metrics import confusion_matrix
 
-from data      import load_mnist, create_data_loader
+from data      import (load_mnist,
+                       split_train_validation_set,
+                       create_data_loader)
 from model     import SoftMax
 from loss_fn   import get_loss_fn
 from optimizer import get_optimizer
 from train     import train
-from visualize import (
-    plot_loss_and_accuracy,
-    plot_parameters,
-    plot_confusion_matrix,
-    plot_sample_predictions
-)
+from plot      import (plot_loss_and_accuracy,
+                       plot_train_val_accuracy,
+                       plot_parameters,
+                       plot_confusion_matrix,
+                       plot_sample_predictions)
 
 # ──────────────────────────────────────────────────────────
 # Config
@@ -25,9 +26,11 @@ device = torch.device("cpu")
 # Data
 # ──────────────────────────────────────────────────────────
 
-train_dataset, test_dataset = load_mnist()
-train_data_loader           = create_data_loader(train_dataset, 64, True)
-test_data_loader            = create_data_loader(test_dataset,  64, False)
+train_dataset, test_dataset = load_mnist(root=os.path.join(ROOT, "data"))
+train_subset, val_subset    = split_train_validation_set(train_dataset)
+train_data_loader           = create_data_loader(train_subset, 64, True)
+val_data_loader             = create_data_loader(val_subset,   64, False)
+test_data_loader            = create_data_loader(test_dataset, 64, False)
 
 # ──────────────────────────────────────────────────────────
 # Model
@@ -41,12 +44,13 @@ optimizer = get_optimizer(model)
 # Training
 # ──────────────────────────────────────────────────────────
 
-model, train_losses, train_accs = train(
+model, train_losses, train_accs, val_losses, val_accs = train(
     model,
     train_data_loader,
     loss_fn,
     optimizer,
-    epoch=25
+    epoch=25,
+    validation_loader=val_data_loader
 )
 
 # ──────────────────────────────────────────────────────────
@@ -75,24 +79,32 @@ with torch.no_grad():
 
 plot_loss_and_accuracy(
     train_losses = train_losses,
+    val_losses   = val_losses,
     train_accs   = train_accs,
-    save_path    = "./visualization/loss_acc.png"
+    val_accs     = val_accs,
+    save_path    = os.path.join(ROOT, "visualization", "loss_acc.png")
+)
+
+plot_train_val_accuracy(
+    train_accs = train_accs,
+    val_accs   = val_accs,
+    save_path  = os.path.join(ROOT, "visualization", "train_val_acc.png")
 )
 
 plot_parameters(
     model     = model,
-    save_path = "./visualization/weights.png"
+    save_path = os.path.join(ROOT, "visualization", "weights.png")
 )
 
 plot_confusion_matrix(
     cm        = confusion_matrix(all_labels, all_preds),
-    save_path = "./visualization/confusion_matrix.png"
+    save_path = os.path.join(ROOT, "visualization", "confusion_matrix.png")
 )
 
 plot_sample_predictions(
     images    = all_images,
     labels    = all_labels,
     preds     = all_preds,
-    save_path = "./visualization/sample_predictions.png",
+    save_path = os.path.join(ROOT, "visualization", "sample_predictions.png"),
     n         = 10
 )

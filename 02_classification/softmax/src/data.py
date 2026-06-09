@@ -43,9 +43,16 @@ def load_mnist(root='./data'):
 # Dataset Splitter
 # ──────────────────────────────────────────────────────────
 
-"""
-    Not needed for MNIST since it already has separate training and test sets.
-"""
+def split_train_validation_set(dataset, train_ratio=0.95, seed=42):
+    """
+        Splits the given dataset into training and validation sets based on the specified ratio.
+        train_ratio: proportion of data to be used for training (default is 0.95).
+    """
+    total_size = len(dataset)
+    train_size = int(train_ratio * total_size)
+    validation_size = total_size - train_size
+    return random_split(dataset, [train_size, validation_size], torch.Generator().manual_seed(seed))
+
 
 
 # ──────────────────────────────────────────────────────────
